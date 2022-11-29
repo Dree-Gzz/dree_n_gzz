@@ -16,6 +16,7 @@ class MainApp(App):
         
         self.faceCascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
         self.model = keras.models.load_model('DreeNGzz.model')
+        self.GENDER = ['Male','Female']
         window = BoxLayout(orientation = 'vertical')
         self.image = Image()
         window.add_widget(self.image)
@@ -53,29 +54,27 @@ class MainApp(App):
     def save_image(self,*args):
         cv2.imwrite('image.jpg', self.image_frame)
         im = cv2.imread('image.jpg')
+        #detecting face in the frame
         # Convert into grayscale
         gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-        faces = self.faceCascade.detectMultiScale(gray, 1.1, 4)
-        
-        for (x, y, w, h) in faces:
-            cv2.rectangle(im, (x, y), (x+w, y+h), 
-                        (0, 0, 255), 2)
-            
-            faces = im[y:y + h, x:x + w]
-            # cv2.imshow("face",faces)
+        faces = self.faceCascade.detectMultiScale(gray,1.4,4)
+        for (x, y, w, h) in faces: 
+            # increase size of head being detected
+            x=x-100 
+            y = y-100
+            faces = im[y:y + h+200, x:x + w+200]
             cv2.imwrite('face.jpg', faces)
 
         def load_image(file_path):
             image_array = cv2.imread(file_path,cv2.IMREAD_GRAYSCALE)
             new_array = cv2.resize(image_array,(128,128))
-            # cv2.imwrite('image1.jpg', new_array)
             return new_array.reshape(1,128,128,1)
 
         prediction = self.model.predict([load_image('face.jpg')])
 
         sex=int(np.round(prediction))
-        GENDER = ['Male','Female']
-        self.gender.text = 'Gender:'+ GENDER[sex]
+        
+        self.gender.text = 'Gender:'+ self.GENDER[sex]
         
 if __name__ == '__main__':
     MainApp().run()
