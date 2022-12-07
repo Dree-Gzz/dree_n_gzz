@@ -52,25 +52,23 @@ class MainApp(App):
         #and buffer format in rapid format in real time
         self.image.texture = texture
     def save_image(self,*args):
-        cv2.imwrite('image.jpg', self.image_frame)
-        im = cv2.imread('image.jpg')
         #detecting face in the frame
         # Convert into grayscale
-        gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+        gray = cv2.cvtColor(self.image_frame, cv2.COLOR_BGR2GRAY)
         faces = self.faceCascade.detectMultiScale(gray,1.4,4)
         for (x, y, w, h) in faces: 
             # increase size of head being detected
             x=x-100 
             y = y-100
-            faces = im[y:y + h+200, x:x + w+200]
-            cv2.imwrite('face.jpg', faces)
-
-        def load_image(file_path):
-            image_array = cv2.imread(file_path,cv2.IMREAD_GRAYSCALE)
+            self.new_image = self.image_frame[y:y + h+200, x:x + w+200]
+            
+        def load_image():
+            image_array = cv2.cvtColor(self.new_image,cv2.COLOR_BGR2GRAY)
             new_array = cv2.resize(image_array,(128,128))
+            cv2.imwrite('image.jpg', image_array)
             return new_array.reshape(1,128,128,1)
 
-        prediction = self.model.predict([load_image('face.jpg')])
+        prediction = self.model.predict([load_image()])
 
         sex=int(np.round(prediction))
         
